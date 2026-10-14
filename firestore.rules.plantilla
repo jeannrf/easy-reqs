@@ -1,0 +1,94 @@
+rules_version = '2';
+
+// Reglas de seguridad: validación del lado del servidor (NFR-008, DES-003).
+// Las marcas {{...}} se reemplazan desde public/config/preguntas.json
+// con `npm run reglas` (también corre antes de cada deploy).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function doc(coleccion, id) {
+      return /databases/$(database)/documents/$(coleccion)/$(id);
+    }
+
+    // FR-013, D-02: solo cuentas de Firebase Auth con un documento en /analistas/{uid}.
+    function esAnalista() {
+      return request.auth != null && exists(doc('analistas', request.auth.uid));
+    }
+
+    function idValido(id) {
+      return id is string && id.matches('^[A-Za-z0-9-]{16,64}$');
+    }
+
+    // FR-004, DR-003: todo es texto de hasta {{MAX_RESPUESTA}} caracteres; las obligatorias
+    // no pueden quedar en blanco (FR-005). Va en línea, sin funciones auxiliares, para no
+    // pasar el límite de 1000 expresiones por evaluación de Firestore.
+    function respuestasValidas(r) {
+      return r is map
+        && r.size() == {{CANTIDAD}}
+        && r.keys().hasOnly({{IDS}})
+        && {{CHEQUEOS}};
+    }
+
+    function contadorAntes() {
+      return exists(doc('contadores', 'envios')) ? get(doc('contadores', 'envios')).data.n : 0;
+    }
+
+    // FR-011, DR-002: número correlativo, fecha del servidor, nombre, correo y respuestas.
+    function envioValido(id) {
+      let d = request.resource.data;
+      let contador = getAfter(doc('contadores', 'envios')).data;
+      return idValido(id)
+        && d.keys().hasAll(['numero', 'recibido', 'nombre', 'correo', 'dispositivo', 'respuestas'])
+        && d.keys().hasOnly(['numero', 'recibido', 'nombre', 'correo', 'dispositivo', 'respuestas'])
+        && d.numero is int && d.numero == contadorAntes() + 1
+        && contador.n == d.numero && contador.ultimoId == id
+        && d.recibido == request.time
+        && d.nombre is string && d.nombre.trim().size() > 0 && d.nombre.size() <= 200
+        && d.correo is string && d.correo.size() <= 254 && d.correo.matches('{{PATRON_CORREO}}')
+        && idValido(d.dispositivo)
+        && getAfter(doc('dispositivos', d.dispositivo)).data.ultimo == request.time
+        && getAfter(doc('recibos', id)).data.numero == d.numero
+        && respuestasValidas(d.respuestas);
+    }
+
+    match /envios/{id} {
+      allow get, list: if esAnalista();          // FR-012, FR-013
+      allow create: if envioValido(id);
+      allow update, delete: if false;            // FR-014
+    }
+
+    // Contador global; solo avanza de uno en uno junto con un envío nuevo (FR-011).
+    match /contadores/envios {
+      allow get: if true;
+      allow create, update: if request.resource.data.keys().hasOnly(['n', 'ultimoId'])
+        && request.resource.data.n == contadorAntes() + 1
+        && idValido(request.resource.data.ultimoId)
+        && !exists(doc('envios', request.resource.data.ultimoId))
+        && existsAfter(doc('envios', request.resource.data.ultimoId));
+    }
+
+    // Recibo público por id de envío: solo dice el número de referencia.
+    // Permite reintentar sin duplicar si la primera respuesta se perdió (FR-008).
+    match /recibos/{id} {
+      allow get: if true;
+      allow create: if request.resource.data.keys().hasOnly(['numero'])
+        && !exists(doc('envios', id))
+        && getAfter(doc('envios', id)).data.numero == request.resource.data.numero;
+    }
+
+    // NFR-009: como mucho un envío por minuto desde el mismo dispositivo.
+    match /dispositivos/{id} {
+      allow create: if idValido(id)
+        && request.resource.data.keys().hasOnly(['ultimo'])
+        && request.resource.data.ultimo == request.time;
+      allow update: if request.resource.data.keys().hasOnly(['ultimo'])
+        && request.resource.data.ultimo == request.time
+        && request.time > resource.data.ultimo + duration.value({{ESPERA_SEGUNDOS}}, 's');
+    }
+
+    match /analistas/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}

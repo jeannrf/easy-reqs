@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <meta name="robots" content="noindex">
+  <title>Respuestas recibidas</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <script type="module" src="js/analista.js"></script>
+</head>
+<body>
+  <main id="app" class="contenedor" aria-busy="true">
+    <div class="barra-analista">
+      <h1 id="titulo"></h1>
+      <div class="acciones">
+        <button type="button" id="exportar" class="boton boton-secundario" hidden></button>
+        <button type="button" id="salir" class="boton boton-secundario" hidden></button>
+      </div>
+    </div>
+
+    <p id="estado" class="aviso" role="status"></p>
+
+    <form id="ingreso" class="ingreso" novalidate hidden>
+      <h2 id="ingreso-titulo"></h2>
+      <div class="campo">
+        <label class="etiqueta" for="ingreso-correo" id="ingreso-correo-etiqueta"></label>
+        <input id="ingreso-correo" type="email" autocomplete="username" inputmode="email" autocapitalize="off" required>
+      </div>
+      <div class="campo">
+        <label class="etiqueta" for="ingreso-clave" id="ingreso-clave-etiqueta"></label>
+        <input id="ingreso-clave" type="password" autocomplete="current-password" required>
+      </div>
+      <p id="ingreso-error" class="error" role="alert" hidden></p>
+      <button type="submit" id="ingresar" class="boton boton-principal"></button>
+    </form>
+
+    <section id="vista" aria-live="polite"></section>
+  </main>
+</body>
+</html>

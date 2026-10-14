@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light dark">
+  <title>Formulario de requerimientos</title>
+  <link rel="stylesheet" href="css/estilos.css">
+  <link rel="modulepreload" href="js/formulario.js">
+  <script type="module" src="js/formulario.js"></script>
+</head>
+<body>
+  <main id="app" class="contenedor" aria-busy="true">
+    <header class="cabecera">
+      <h1 id="titulo"></h1>
+      <p id="instrucciones" class="instrucciones"></p>
+    </header>
+
+    <p id="mensaje-carga" class="aviso" role="status"></p>
+
+    <div id="avance" class="avance" hidden>
+      <p id="avance-texto" class="avance-texto"></p>
+      <div class="barra" aria-hidden="true"><div id="barra-relleno" class="barra-relleno"></div></div>
+      <p id="avance-respondidas" class="avance-respondidas"></p>
+    </div>
+
+    <form id="formulario" novalidate hidden>
+      <div id="pasos"></div>
+
+      <div id="resumen-errores" class="resumen-errores" role="alert" tabindex="-1" hidden></div>
+
+      <div id="error-envio" class="error-envio" role="alert" hidden>
+        <h2 id="error-envio-titulo"></h2>
+        <p id="error-envio-texto"></p>
+        <button type="button" id="reintentar" class="boton boton-principal"></button>
+      </div>
+
+      <div class="navegacion">
+        <button type="button" id="anterior" class="boton boton-secundario"></button>
+        <button type="submit" id="siguiente" class="boton boton-principal"></button>
+      </div>
+    </form>
+
+    <section id="confirmacion" class="confirmacion" tabindex="-1" hidden>
+      <h2 id="confirmacion-titulo"></h2>
+      <p id="confirmacion-texto"></p>
+      <p><span id="confirmacion-referencia"></span> <strong id="numero-referencia" class="numero-referencia"></strong></p>
+      <button type="button" id="nuevo" class="boton boton-secundario"></button>
+    </section>
+  </main>
+</body>
+</html>
