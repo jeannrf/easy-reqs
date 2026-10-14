@@ -1,0 +1,39 @@
+# NFR-010: respaldo diario de los envíos. El archivo se cifra antes de subirlo
+# porque los artefactos de un repositorio público pueden descargarse.
+# Para descifrar: openssl enc -d -aes-256-cbc -pbkdf2 -in respaldo.json.enc -out respaldo.json
+name: Respaldo diario
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # 03:00 en Lima
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  respaldo:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run respaldo
+        env:
+          FIREBASE_CUENTA_SERVICIO: ${{ secrets.FIREBASE_CUENTA_SERVICIO }}
+      - name: Cifrar
+        env:
+          RESPALDO_CLAVE: ${{ secrets.RESPALDO_CLAVE }}
+        run: |
+          for f in respaldos/*.json; do
+            openssl enc -aes-256-cbc -pbkdf2 -salt -in "$f" -out "$f.enc" -pass env:RESPALDO_CLAVE
+            rm "$f"
+          done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: respaldo-${{ github.run_id }}
+          path: respaldos/*.enc
+          retention-days: 90

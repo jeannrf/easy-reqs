@@ -1,0 +1,25 @@
+{
+  "name": "easy-reqs",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Fase 1: formulario web mobile-first para levantar requerimientos de software",
+  "type": "module",
+  "scripts": {
+    "reglas": "node scripts/generar-reglas.mjs",
+    "servir": "node scripts/servir.mjs",
+    "emuladores": "firebase emulators:start --only firestore,auth --project demo-easy-reqs",
+    "test": "npm run test:unit && npm run test:emuladores",
+    "test:unit": "node --test tests/unit/",
+    "test:emuladores": "npm run reglas && firebase emulators:exec --only firestore,auth --project demo-easy-reqs \"node --test tests/reglas/ && playwright test\"",
+    "desplegar:reglas": "firebase deploy --only firestore:rules",
+    "respaldo": "node scripts/respaldo.mjs"
+  },
+  "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
+    "@firebase/rules-unit-testing": "5.0.2",
+    "@playwright/test": "1.63.0",
+    "firebase": "12.19.0",
+    "firebase-admin": "14.5.0",
+    "firebase-tools": "15.31.0"
+  }
+}

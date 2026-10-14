@@ -1,0 +1,63 @@
+{
+  "titulo": "Cuéntanos qué software necesitas",
+  "instrucciones": "Responde con tus propias palabras. No hay respuestas correctas o incorrectas. Lo que escribas se guarda en este dispositivo mientras avanzas, así que puedes volver más tarde.",
+  "obligatorioMarca": "(obligatoria)",
+  "opcionalMarca": "(opcional)",
+  "contacto": {
+    "titulo": "Tus datos de contacto",
+    "obligatorioMarca": "(obligatorio)",
+    "nombre": "Nombre",
+    "correo": "Correo electrónico",
+    "correoAyuda": "Por ejemplo: nombre@dominio.com",
+    "privacidad": "Usaremos tu nombre y correo solo para contactarte sobre tu solicitud."
+  },
+  "avance": "Paso {actual} de {total}",
+  "avanceRespondidas": "{respondidas} de {total} preguntas respondidas",
+  "botones": {
+    "anterior": "Anterior",
+    "siguiente": "Siguiente",
+    "enviar": "Enviar",
+    "enviando": "Enviando…",
+    "reintentar": "Reintentar",
+    "nuevo": "Llenar otro formulario"
+  },
+  "errores": {
+    "obligatoria": "Esta pregunta es obligatoria.",
+    "nombre": "Escribe tu nombre.",
+    "correoVacio": "Escribe tu correo electrónico.",
+    "correoInvalido": "Escribe un correo válido, por ejemplo nombre@dominio.com.",
+    "muyLargo": "La respuesta es demasiado larga (máximo {max} caracteres).",
+    "resumen": "Revisa {n} campo(s) antes de continuar:",
+    "carga": "No se pudo cargar el formulario. Revisa tu conexión y recarga la página."
+  },
+  "envio": {
+    "errorTitulo": "No pudimos enviar tus respuestas",
+    "errorRed": "Parece que no hay conexión a internet. Tus respuestas siguen guardadas en este dispositivo; inténtalo de nuevo.",
+    "errorEspera": "Acabas de enviar un formulario desde este dispositivo. Espera un minuto e inténtalo de nuevo.",
+    "errorGeneral": "Ocurrió un problema al enviar. Tus respuestas siguen guardadas en este dispositivo; inténtalo de nuevo.",
+    "confirmacionTitulo": "¡Recibimos tus respuestas!",
+    "confirmacionTexto": "Gracias. Revisaremos tu solicitud y te contactaremos al correo que dejaste.",
+    "referencia": "Tu número de referencia es"
+  },
+  "analista": {
+    "titulo": "Respuestas recibidas",
+    "ingresoTitulo": "Ingreso del analista",
+    "correo": "Correo",
+    "clave": "Contraseña",
+    "ingresar": "Ingresar",
+    "salir": "Salir",
+    "ingresoError": "Correo o contraseña incorrectos.",
+    "sinAcceso": "Esta cuenta no tiene permiso para ver las respuestas.",
+    "cargando": "Cargando…",
+    "vacio": "Todavía no hay respuestas.",
+    "respuesta": "Respuesta {n}",
+    "volver": "Volver a la lista",
+    "exportar": "Exportar CSV",
+    "noEncontrada": "No existe la respuesta {n}.",
+    "sinResponder": "(sin respuesta)",
+    "recibido": "Recibido",
+    "nombre": "Nombre",
+    "correoCampo": "Correo",
+    "errorCarga": "No se pudieron cargar las respuestas. Recarga la página."
+  }
+}

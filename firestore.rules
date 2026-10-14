@@ -1,0 +1,128 @@
+// ARCHIVO GENERADO por scripts/generar-reglas.mjs. No editar a mano:
+// cambia firestore.rules.plantilla o public/config/preguntas.json.
+rules_version = '2';
+
+// Reglas de seguridad: validación del lado del servidor (NFR-008, DES-003).
+// Las marcas {{...}} se reemplazan desde public/config/preguntas.json
+// con `npm run reglas` (también corre antes de cada deploy).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function doc(coleccion, id) {
+      return /databases/$(database)/documents/$(coleccion)/$(id);
+    }
+
+    // FR-013, D-02: solo cuentas de Firebase Auth con un documento en /analistas/{uid}.
+    function esAnalista() {
+      return request.auth != null && exists(doc('analistas', request.auth.uid));
+    }
+
+    function idValido(id) {
+      return id is string && id.matches('^[A-Za-z0-9-]{16,64}$');
+    }
+
+    // FR-004, DR-003: todo es texto de hasta 5000 caracteres; las obligatorias
+    // no pueden quedar en blanco (FR-005). Va en línea, sin funciones auxiliares, para no
+    // pasar el límite de 1000 expresiones por evaluación de Firestore.
+    function respuestasValidas(r) {
+      return r is map
+        && r.size() == 33
+        && r.keys().hasOnly(['QB-01', 'QB-02', 'QB-03', 'QB-04', 'QB-05', 'QB-06', 'QB-07', 'QB-08', 'QB-09', 'QB-10', 'QB-11', 'QB-12', 'QB-13', 'QB-14', 'QB-15', 'QB-16', 'QB-17', 'QB-18', 'QB-19', 'QB-20', 'QB-21', 'QB-22', 'QB-23', 'QB-24', 'QB-25', 'QB-26', 'QB-27', 'QB-28', 'QB-29', 'QB-30', 'QB-31', 'QB-32', 'QB-33'])
+        && r['QB-01'] is string && r['QB-01'].size() <= 5000 && r['QB-01'].trim().size() > 0
+        && r['QB-02'] is string && r['QB-02'].size() <= 5000 && r['QB-02'].trim().size() > 0
+        && r['QB-03'] is string && r['QB-03'].size() <= 5000
+        && r['QB-04'] is string && r['QB-04'].size() <= 5000
+        && r['QB-05'] is string && r['QB-05'].size() <= 5000 && r['QB-05'].trim().size() > 0
+        && r['QB-06'] is string && r['QB-06'].size() <= 5000
+        && r['QB-07'] is string && r['QB-07'].size() <= 5000 && r['QB-07'].trim().size() > 0
+        && r['QB-08'] is string && r['QB-08'].size() <= 5000
+        && r['QB-09'] is string && r['QB-09'].size() <= 5000 && r['QB-09'].trim().size() > 0
+        && r['QB-10'] is string && r['QB-10'].size() <= 5000 && r['QB-10'].trim().size() > 0
+        && r['QB-11'] is string && r['QB-11'].size() <= 5000
+        && r['QB-12'] is string && r['QB-12'].size() <= 5000
+        && r['QB-13'] is string && r['QB-13'].size() <= 5000 && r['QB-13'].trim().size() > 0
+        && r['QB-14'] is string && r['QB-14'].size() <= 5000 && r['QB-14'].trim().size() > 0
+        && r['QB-15'] is string && r['QB-15'].size() <= 5000 && r['QB-15'].trim().size() > 0
+        && r['QB-16'] is string && r['QB-16'].size() <= 5000
+        && r['QB-17'] is string && r['QB-17'].size() <= 5000
+        && r['QB-18'] is string && r['QB-18'].size() <= 5000
+        && r['QB-19'] is string && r['QB-19'].size() <= 5000
+        && r['QB-20'] is string && r['QB-20'].size() <= 5000
+        && r['QB-21'] is string && r['QB-21'].size() <= 5000 && r['QB-21'].trim().size() > 0
+        && r['QB-22'] is string && r['QB-22'].size() <= 5000
+        && r['QB-23'] is string && r['QB-23'].size() <= 5000
+        && r['QB-24'] is string && r['QB-24'].size() <= 5000
+        && r['QB-25'] is string && r['QB-25'].size() <= 5000
+        && r['QB-26'] is string && r['QB-26'].size() <= 5000 && r['QB-26'].trim().size() > 0
+        && r['QB-27'] is string && r['QB-27'].size() <= 5000 && r['QB-27'].trim().size() > 0
+        && r['QB-28'] is string && r['QB-28'].size() <= 5000
+        && r['QB-29'] is string && r['QB-29'].size() <= 5000
+        && r['QB-30'] is string && r['QB-30'].size() <= 5000 && r['QB-30'].trim().size() > 0
+        && r['QB-31'] is string && r['QB-31'].size() <= 5000
+        && r['QB-32'] is string && r['QB-32'].size() <= 5000
+        && r['QB-33'] is string && r['QB-33'].size() <= 5000;
+    }
+
+    function contadorAntes() {
+      return exists(doc('contadores', 'envios')) ? get(doc('contadores', 'envios')).data.n : 0;
+    }
+
+    // FR-011, DR-002: número correlativo, fecha del servidor, nombre, correo y respuestas.
+    function envioValido(id) {
+      let d = request.resource.data;
+      let contador = getAfter(doc('contadores', 'envios')).data;
+      return idValido(id)
+        && d.keys().hasAll(['numero', 'recibido', 'nombre', 'correo', 'dispositivo', 'respuestas'])
+        && d.keys().hasOnly(['numero', 'recibido', 'nombre', 'correo', 'dispositivo', 'respuestas'])
+        && d.numero is int && d.numero == contadorAntes() + 1
+        && contador.n == d.numero && contador.ultimoId == id
+        && d.recibido == request.time
+        && d.nombre is string && d.nombre.trim().size() > 0 && d.nombre.size() <= 200
+        && d.correo is string && d.correo.size() <= 254 && d.correo.matches('^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')
+        && idValido(d.dispositivo)
+        && getAfter(doc('dispositivos', d.dispositivo)).data.ultimo == request.time
+        && getAfter(doc('recibos', id)).data.numero == d.numero
+        && respuestasValidas(d.respuestas);
+    }
+
+    match /envios/{id} {
+      allow get, list: if esAnalista();          // FR-012, FR-013
+      allow create: if envioValido(id);
+      allow update, delete: if false;            // FR-014
+    }
+
+    // Contador global; solo avanza de uno en uno junto con un envío nuevo (FR-011).
+    match /contadores/envios {
+      allow get: if true;
+      allow create, update: if request.resource.data.keys().hasOnly(['n', 'ultimoId'])
+        && request.resource.data.n == contadorAntes() + 1
+        && idValido(request.resource.data.ultimoId)
+        && !exists(doc('envios', request.resource.data.ultimoId))
+        && existsAfter(doc('envios', request.resource.data.ultimoId));
+    }
+
+    // Recibo público por id de envío: solo dice el número de referencia.
+    // Permite reintentar sin duplicar si la primera respuesta se perdió (FR-008).
+    match /recibos/{id} {
+      allow get: if true;
+      allow create: if request.resource.data.keys().hasOnly(['numero'])
+        && !exists(doc('envios', id))
+        && getAfter(doc('envios', id)).data.numero == request.resource.data.numero;
+    }
+
+    // NFR-009: como mucho un envío por minuto desde el mismo dispositivo.
+    match /dispositivos/{id} {
+      allow create: if idValido(id)
+        && request.resource.data.keys().hasOnly(['ultimo'])
+        && request.resource.data.ultimo == request.time;
+      allow update: if request.resource.data.keys().hasOnly(['ultimo'])
+        && request.resource.data.ultimo == request.time
+        && request.time > resource.data.ultimo + duration.value(60, 's');
+    }
+
+    match /analistas/{uid} {
+      allow get: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
