@@ -71,9 +71,10 @@ async function contarEnvios() {
   return n;
 }
 
-async function crearAnalista(uid) {
-  await entorno.withSecurityRulesDisabled((ctx) => setDoc(doc(ctx.firestore(), 'analistas', uid), {}));
-}
+const { correo: CORREO_ANALISTA } = JSON.parse(leer('public/config/analista.json'));
+const cuenta = (uid, correo, verificado = true) =>
+  entorno.authenticatedContext(uid, { email: correo, email_verified: verificado }).firestore();
+const analista = () => cuenta('analista1', CORREO_ANALISTA);
 
 test('FR-011: un envío válido se guarda con número correlativo y fecha del servidor', async () => {
   const db = anonimo();
@@ -141,8 +142,7 @@ test('FR-011: no se puede falsear el número ni la fecha', async () => {
 test('FR-014: nadie puede editar ni borrar un envío', async () => {
   const idEnvio = randomUUID();
   await enviar(anonimo(), datosValidos(), { idEnvio });
-  await crearAnalista('analista1');
-  for (const db of [anonimo(), entorno.authenticatedContext('analista1').firestore()]) {
+  for (const db of [anonimo(), analista()]) {
     await assertFails(updateDoc(doc(db, 'envios', idEnvio), { nombre: 'Otro' }));
     await assertFails(deleteDoc(doc(db, 'envios', idEnvio)));
   }
@@ -151,19 +151,22 @@ test('FR-014: nadie puede editar ni borrar un envío', async () => {
 test('FR-013: sin autorización no se puede leer ningún envío', async () => {
   const idEnvio = randomUUID();
   await enviar(anonimo(), datosValidos(), { idEnvio });
-  for (const db of [anonimo(), entorno.authenticatedContext('intruso').firestore()]) {
+  const sinPermiso = [
+    anonimo(),
+    entorno.authenticatedContext('intruso').firestore(),
+    cuenta('otro', 'otro@correo.com'),
+    cuenta('falso', CORREO_ANALISTA, false), // mismo correo, pero sin verificar
+  ];
+  for (const db of sinPermiso) {
     await assertFails(getDocs(collection(db, 'envios')));
     await assertFails(getDoc(doc(db, 'envios', idEnvio)));
   }
-  // Una cuenta no puede darse permiso de analista a sí misma.
-  await assertFails(setDoc(doc(entorno.authenticatedContext('intruso').firestore(), 'analistas', 'intruso'), {}));
 });
 
 test('FR-012, FR-013: un analista autorizado lee todos los envíos', async () => {
   await enviar(anonimo(), datosValidos());
   await enviar(anonimo(), datosValidos({ nombre: 'Luis' }));
-  await crearAnalista('analista1');
-  const db = entorno.authenticatedContext('analista1').firestore();
+  const db = analista();
   const lista = await assertSucceeds(getDocs(collection(db, 'envios')));
   assert.equal(lista.size, 2);
 });

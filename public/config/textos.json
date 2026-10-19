@@ -1,4 +1,5 @@
 {
+  "marca": "Easy Reqs",
   "titulo": "Cuéntanos qué software necesitas",
   "instrucciones": "Responde con tus propias palabras. No hay respuestas correctas o incorrectas. Lo que escribas se guarda en este dispositivo mientras avanzas, así que puedes volver más tarde.",
   "obligatorioMarca": "(obligatoria)",
@@ -42,12 +43,10 @@
   "analista": {
     "titulo": "Respuestas recibidas",
     "ingresoTitulo": "Ingreso del analista",
-    "correo": "Correo",
-    "clave": "Contraseña",
-    "ingresar": "Ingresar",
+    "ingresar": "Continuar con Google",
     "salir": "Salir",
-    "ingresoError": "Correo o contraseña incorrectos.",
-    "sinAcceso": "Esta cuenta no tiene permiso para ver las respuestas.",
+    "ingresoError": "No se pudo iniciar sesión. Inténtalo de nuevo.",
+    "sinAcceso": "Esta cuenta de Google no tiene permiso para ver las respuestas.",
     "cargando": "Cargando…",
     "vacio": "Todavía no hay respuestas.",
     "respuesta": "Respuesta {n}",
@@ -58,6 +57,11 @@
     "recibido": "Recibido",
     "nombre": "Nombre",
     "correoCampo": "Correo",
-    "errorCarga": "No se pudieron cargar las respuestas. Recarga la página."
-  }
+    "errorCarga": "No se pudieron cargar las respuestas. Recarga la página.",
+    "panel": "Panel de administración",
+    "ingresoTexto": "Acceso restringido. Ingresa con la cuenta de Google autorizada.",
+    "sesion": "Sesión: {correo}",
+    "columnaFecha": "Recibido"
+  },
+  "pie": "Easy Reqs · Levantamiento de requerimientos de software"
 }

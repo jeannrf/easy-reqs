@@ -1,0 +1,94 @@
+/* Estilos con Tailwind. Se compilan a public/css/estilos.css con `npm run css`
+   (también corre antes de las pruebas y de cada despliegue). */
+@import "tailwindcss" source(none);
+@source "../public/**/*.{html,js}";
+
+/* Colores semánticos con modo claro y oscuro (prefers-color-scheme). */
+:root {
+  --c-fondo: #f1f4f9;
+  --c-superficie: #ffffff;
+  --c-texto: #0f172a;
+  --c-suave: #475569;
+  --c-borde: #d6dde8;
+  --c-campo: #64748b;
+  --c-cabecera: #0b1f3a;
+  --c-hero: #1e3a8a;
+  --c-primario: #1e40af;
+  --c-primario-texto: #ffffff;
+  --c-primario-hover: #1e3a8a;
+  --c-primario-suave: #e8eefc;
+  --c-error: #b3261e;
+  --c-error-fondo: #fdecea;
+  --c-exito: #166534;
+  --c-exito-fondo: #e8f5ec;
+  --c-foco: #2563eb;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-fondo: #0b1220;
+    --c-superficie: #131c2e;
+    --c-texto: #e6ebf5;
+    --c-suave: #a8b3c7;
+    --c-borde: #26334d;
+    --c-campo: #8190ab;
+    --c-cabecera: #0a1628;
+    --c-hero: #12306b;
+    --c-primario: #7aa6ff;
+    --c-primario-texto: #04122e;
+    --c-primario-hover: #9bbcff;
+    --c-primario-suave: #1a2a4d;
+    --c-error: #ffb4ab;
+    --c-error-fondo: #3a1714;
+    --c-exito: #86e0a0;
+    --c-exito-fondo: #13301c;
+    --c-foco: #9bbcff;
+    color-scheme: dark;
+  }
+}
+
+@theme inline {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+  --color-fondo: var(--c-fondo);
+  --color-superficie: var(--c-superficie);
+  --color-texto: var(--c-texto);
+  --color-suave: var(--c-suave);
+  --color-borde: var(--c-borde);
+  --color-campo: var(--c-campo);
+  --color-cabecera: var(--c-cabecera);
+  --color-hero: var(--c-hero);
+  --color-primario: var(--c-primario);
+  --color-primario-texto: var(--c-primario-texto);
+  --color-primario-hover: var(--c-primario-hover);
+  --color-primario-suave: var(--c-primario-suave);
+  --color-error: var(--c-error);
+  --color-error-fondo: var(--c-error-fondo);
+  --color-exito: var(--c-exito);
+  --color-exito-fondo: var(--c-exito-fondo);
+  --color-foco: var(--c-foco);
+}
+
+@layer base {
+  html { -webkit-text-size-adjust: 100%; }
+  body { overflow-wrap: anywhere; }
+  legend + * { clear: both; }
+  [aria-invalid="true"] { @apply border-2 border-error; }
+  a:focus-visible { @apply outline-3 outline-offset-2 outline-foco; }
+}
+
+@layer components {
+  /* NFR-003: texto de al menos 16 px (también evita el zoom en iOS). */
+  .campo-texto {
+    @apply block min-h-[46px] w-full rounded-lg border border-campo bg-superficie px-3 py-2.5 text-base text-texto transition hover:border-suave focus-visible:border-foco focus-visible:ring-4 focus-visible:ring-foco/30 focus-visible:outline-none;
+  }
+  textarea.campo-texto { @apply min-h-24 resize-y overflow-hidden; }
+
+  /* NFR-002: objetivos táctiles de al menos 44 × 44 px. */
+  .boton {
+    @apply inline-flex min-h-12 min-w-11 cursor-pointer items-center justify-center gap-2.5 rounded-lg border border-primario px-5 py-3 font-semibold transition focus-visible:outline-3 focus-visible:outline-offset-2 focus-visible:outline-foco aria-disabled:cursor-progress aria-disabled:opacity-70;
+  }
+  .boton-principal { @apply bg-primario text-primario-texto hover:border-primario-hover hover:bg-primario-hover; }
+  .boton-secundario { @apply bg-superficie text-primario hover:bg-primario-suave; }
+  .boton-google { @apply w-full border-[#8a94a6] bg-white text-[#1f2937] hover:bg-[#f3f4f6]; }
+}

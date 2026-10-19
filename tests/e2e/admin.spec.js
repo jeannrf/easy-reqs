@@ -1,7 +1,7 @@
 // Escenarios de aceptación del SRS (sección 4) para el analista.
 import { test, expect } from '@playwright/test';
 import AxeBuilder from '@axe-core/playwright';
-import { limpiarEmuladores, crearEnvio, crearCuenta, preguntas, textos } from './ayuda.js';
+import { limpiarEmuladores, crearEnvio, ingresarConGoogle, correoAnalista, preguntas, textos } from './ayuda.js';
 
 test.beforeEach(async () => {
   await limpiarEmuladores();
@@ -9,16 +9,13 @@ test.beforeEach(async () => {
   await crearEnvio(2, 'Luis Rojas', 'luis@correo.com', Object.fromEntries(preguntas.map((p) => [p.id, p.required ? `Luis responde ${p.id}` : ''])));
 });
 
-async function ingresar(page, correo, clave) {
-  await page.goto('/analista.html');
-  await page.getByLabel(textos.analista.correo).fill(correo);
-  await page.getByLabel(textos.analista.clave).fill(clave);
-  await page.getByRole('button', { name: textos.analista.ingresar }).click();
+async function ingresar(page, correo) {
+  await page.goto('/admin');
+  await ingresarConGoogle(page, correo);
 }
 
 test('FR-012, FR-013: un analista autorizado abre la respuesta 2 y ve todo', async ({ page }) => {
-  await crearCuenta('analista@equipo.com', 'clave-segura-123', { analista: true });
-  await ingresar(page, 'analista@equipo.com', 'clave-segura-123');
+  await ingresar(page, correoAnalista);
 
   // UI-004: lista numerada con nombre, correo y fecha.
   await expect(page.getByRole('link', { name: /Respuesta 1/ })).toContainText('ana@correo.com');
@@ -38,8 +35,7 @@ test('FR-012, FR-013: un analista autorizado abre la respuesta 2 y ve todo', asy
 });
 
 test('FR-015: el analista exporta los envíos a CSV', async ({ page }) => {
-  await crearCuenta('analista@equipo.com', 'clave-segura-123', { analista: true });
-  await ingresar(page, 'analista@equipo.com', 'clave-segura-123');
+  await ingresar(page, correoAnalista);
   const descarga = page.waitForEvent('download');
   await page.getByRole('button', { name: textos.analista.exportar }).click();
   const archivo = await descarga;
@@ -51,22 +47,16 @@ test('FR-015: el analista exporta los envíos a CSV', async ({ page }) => {
 });
 
 test('FR-013: una persona sin sesión no ve ningún dato', async ({ page }) => {
-  await page.goto('/analista.html#/respuesta/2');
+  await page.goto('/admin#/respuesta/2');
   await expect(page.getByRole('button', { name: textos.analista.ingresar })).toBeVisible();
   await expect(page.getByText('Luis Rojas')).toHaveCount(0);
   await expect(page.getByRole('link', { name: /Respuesta/ })).toHaveCount(0);
 });
 
-test('FR-013: una cuenta que no es analista no ve ningún dato', async ({ page }) => {
-  await crearCuenta('curioso@correo.com', 'otra-clave-123', { analista: false });
-  await ingresar(page, 'curioso@correo.com', 'otra-clave-123');
+test('FR-013: otra cuenta de Google no ve ningún dato', async ({ page }) => {
+  await ingresar(page, 'curioso@correo.com');
   await expect(page.getByText(textos.analista.sinAcceso)).toBeVisible();
   await expect(page.getByText('Luis Rojas')).toHaveCount(0);
   await expect(page.getByRole('link', { name: /Respuesta/ })).toHaveCount(0);
 });
 
-test('FR-013: una contraseña incorrecta muestra un error', async ({ page }) => {
-  await crearCuenta('analista@equipo.com', 'clave-segura-123', { analista: true });
-  await ingresar(page, 'analista@equipo.com', 'equivocada');
-  await expect(page.getByText(textos.analista.ingresoError)).toBeVisible();
-});

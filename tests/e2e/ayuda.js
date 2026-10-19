@@ -38,15 +38,29 @@ export async function crearEnvio(numero, nombre, correo, respuestas) {
   await fetch(`${FIRESTORE}/envios?documentId=${crypto.randomUUID()}`, { method: 'POST', headers: COMO_DUENO, body: JSON.stringify(cuerpo) });
 }
 
-export async function crearCuenta(correo, clave, { analista }) {
-  const r = await (await fetch(`${AUTH}/identitytoolkit.googleapis.com/v1/accounts:signUp?key=demo`, {
+export const correoAnalista = JSON.parse(readFileSync(new URL('../../public/config/analista.json', import.meta.url), 'utf8')).correo;
+
+// Crea en el emulador de Auth una cuenta de Google con el correo verificado, como en producción.
+async function crearCuentaGoogle(correo) {
+  await fetch(`${AUTH}/identitytoolkit.googleapis.com/v1/accounts:signInWithIdp?key=demo`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: correo, password: clave, returnSecureToken: true }),
-  })).json();
-  if (analista) {
-    await fetch(`${FIRESTORE}/analistas?documentId=${r.localId}`, { method: 'POST', headers: COMO_DUENO, body: JSON.stringify({ fields: {} }) });
-  }
-  return r.localId;
+    body: JSON.stringify({
+      requestUri: 'http://localhost',
+      returnSecureToken: true,
+      postBody: `providerId=google.com&id_token=${encodeURIComponent(JSON.stringify({ sub: correo, email: correo, email_verified: true }))}`,
+    }),
+  });
+}
+
+// Inicia sesión con Google en el emulador de Auth eligiendo la cuenta con ese correo.
+export async function ingresarConGoogle(page, correo) {
+  await crearCuentaGoogle(correo);
+  const [ventana] = await Promise.all([
+    page.waitForEvent('popup'),
+    page.getByRole('button', { name: textos.analista.ingresar }).click(),
+  ]);
+  await ventana.waitForLoadState('load'); // antes de esto, el clic no hace nada
+  await ventana.getByText(correo).click();
 }
 
 // Respuestas válidas: todas las obligatorias con texto.

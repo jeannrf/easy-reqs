@@ -7,15 +7,16 @@ Formulario web mobile-first para que quien necesita un software describa lo que 
 | ID | Decisión |
 | --- | --- |
 | D-01 | Guardado central en **Cloud Firestore** (plan gratuito Spark). |
-| D-02 | Analista con **Firebase Auth** (correo y contraseña). Solo pueden leer las cuentas que tengan un documento en `analistas/{uid}`. |
-| D-03 | **HTML, CSS y JS sin frameworks** publicados en **GitHub Pages**. La validación del servidor está en las reglas de Firestore. Pruebas con `node:test`, el emulador de Firebase y Playwright. |
+| D-02 | Analista con **inicio de sesión de Google** (sin contraseñas ni usuarios que crear). Solo puede leer la cuenta cuyo correo está en `public/config/analista.json`. |
+| D-03 | **HTML y JS sin frameworks, con Tailwind CSS** (compilado con su CLI, sin CDN) publicados en **Firebase Hosting**. La validación del servidor está en las reglas de Firestore. Pruebas con `node:test`, el emulador de Firebase y Playwright. |
 
 ## Estructura
 
 ```
-public/                  Lo que se publica en GitHub Pages
+src/estilos.css          Estilos de Tailwind y colores (claro/oscuro)
+public/                  Lo que se publica en Firebase Hosting (css/estilos.css se genera con `npm run css`)
   index.html             Formulario (UI-001 a UI-003)
-  analista.html          Lista y detalle de respuestas (UI-004, UI-005)
+  admin.html             Panel /admin: lista y detalle de respuestas (UI-004, UI-005)
   config/preguntas.json  Banco de preguntas (DR-001)
   config/textos.json     Todos los textos de la interfaz (NFR-011)
   js/firebase-config.js  Configuración web de tu proyecto de Firebase
@@ -36,7 +37,7 @@ npm run emuladores                # terminal 1: Firestore y Auth locales
 npm run servir                    # terminal 2: http://localhost:5173
 ```
 
-En `localhost` la app usa siempre los emuladores, nunca tu proyecto real. La vista del analista está en http://localhost:5173/analista.html. Para entrar, crea una cuenta en el emulador y su documento en `analistas`, como en `tests/e2e/ayuda.js`.
+En `localhost` la app usa siempre los emuladores, nunca tu proyecto real. El panel está en http://localhost:5173/admin. En el emulador, entra con "Add new account" y el correo de `public/config/analista.json`.
 
 ## Pruebas
 
@@ -51,7 +52,7 @@ Las pruebas de aceptación usan Chrome en un celular de 360 px. Safari (WebKit) 
 
 1. **Crear el proyecto de Firebase** en https://console.firebase.google.com (plan Spark, gratis).
    - *Firestore Database* > Crear base de datos > modo producción > región `southamerica-east1` (o la más cercana).
-   - *Authentication* > Comenzar > habilitar **Correo/contraseña**.
+   - *Authentication* > Comenzar > *Método de acceso* > habilitar **Google**. No habilites Correo/contraseña.
    - *Configuración del proyecto* > Tus apps > agregar app **Web**. Copia los valores en `public/js/firebase-config.js`. Son públicos por diseño.
 2. **Publicar las reglas de seguridad:**
    ```bash
@@ -59,14 +60,12 @@ Las pruebas de aceptación usan Chrome en un celular de 360 px. Safari (WebKit) 
    npx firebase use --add          # elige tu proyecto
    npm run desplegar:reglas
    ```
-3. **Crear al analista:**
-   - *Authentication* > Usuarios > Agregar usuario (correo y contraseña). Copia su **UID**.
-   - *Firestore* > Iniciar colección `analistas` > ID del documento = ese UID (sin campos).
-4. **Publicar en GitHub Pages:**
-   - Sube el repositorio a GitHub (rama `main`).
-   - *Settings* > *Pages* > Source: **GitHub Actions**. El flujo `publicar.yml` publica `public/` en cada push.
-   - El formulario queda en `https://<usuario>.github.io/<repo>/` y la vista del analista en `.../analista.html`. Ambos usan HTTPS (NFR-008).
-   - En Firebase, *Authentication* > *Configuración* > *Dominios autorizados*: agrega `<usuario>.github.io`.
+3. **Definir al analista:** escribe tu correo de Google en `public/config/analista.json` y vuelve a publicar las reglas (`npm run desplegar:reglas`). No hay que crear usuarios ni contraseñas.
+4. **Publicar en Firebase Hosting:**
+   - En la consola, *Hosting* > Comenzar (basta con crear el sitio; el dominio es `easy-reqs.web.app`).
+   - Despliega con `npm run desplegar` (publica `public/` y las reglas).
+   - El formulario queda en `https://easy-reqs.web.app/` y el panel del analista en `.../admin`. Ambos usan HTTPS (NFR-008).
+   - El dominio `*.web.app` ya viene autorizado en *Authentication*.
 5. **Respaldo diario (NFR-010):**
    - En Firebase, *Configuración del proyecto* > *Cuentas de servicio* > Generar nueva clave privada.
    - En GitHub, *Settings* > *Secrets and variables* > *Actions*, crea dos secretos: `FIREBASE_CUENTA_SERVICIO` (el contenido completo del JSON) y `RESPALDO_CLAVE` (una contraseña larga para cifrar).
@@ -89,7 +88,7 @@ Ojo: la prueba `tests/unit/config.test.js` exige exactamente 33 preguntas y 13 o
 | FR-004, FR-005 | unit, reglas, e2e |
 | FR-007, FR-010 | e2e (recargar conserva; tras enviar se vacía) |
 | FR-008, FR-009, FR-011 | reglas (idempotencia, concurrencia, número y fecha del servidor), e2e (doble toque, sin conexión, fallo del servicio) |
-| FR-012, FR-013 | reglas, e2e `analista.spec.js` (analista, sin sesión, cuenta no autorizada) |
+| FR-012, FR-013 | reglas, e2e `admin.spec.js` (analista, sin sesión, cuenta no autorizada) |
 | FR-014 | reglas (nadie edita ni borra) |
 | FR-015 | unit (CSV), e2e (descarga) |
 | DR-001 a DR-005 | unit `config.test.js`, reglas |

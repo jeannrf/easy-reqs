@@ -1,4 +1,4 @@
-// Servidor estático mínimo para desarrollo local (en producción sirve GitHub Pages).
+// Servidor estático mínimo para desarrollo local (en producción sirve Firebase Hosting).
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
@@ -17,6 +17,7 @@ const tipos = {
 createServer(async (req, res) => {
   let ruta = decodeURIComponent(new URL(req.url, 'http://x').pathname);
   if (ruta.endsWith('/')) ruta += 'index.html';
+  if (!extname(ruta)) ruta += '.html'; // como cleanUrls de Firebase Hosting: /admin -> admin.html
   const archivo = normalize(join(raiz, ruta));
   if (!archivo.startsWith(raiz)) return res.writeHead(403).end();
   try {

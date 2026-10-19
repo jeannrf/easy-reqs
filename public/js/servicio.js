@@ -3,15 +3,15 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js';
 import {
   getFirestore, connectFirestoreEmulator, doc, collection, query, orderBy,
-  runTransaction, getDocs, getDoc, serverTimestamp,
+  runTransaction, getDocs, serverTimestamp,
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js';
 import {
-  getAuth, connectAuthEmulator, signInWithEmailAndPassword, signOut, onAuthStateChanged,
+  getAuth, connectAuthEmulator, GoogleAuthProvider, signInWithPopup, signOut, onAuthStateChanged,
 } from 'https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js';
 import { firebaseConfig, usarEmuladores, proyectoEmulador } from './firebase-config.js';
 
 const app = initializeApp(usarEmuladores
-  ? { apiKey: 'demo', projectId: proyectoEmulador }
+  ? { apiKey: 'demo', authDomain: 'localhost', projectId: proyectoEmulador }
   : firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
@@ -78,20 +78,12 @@ export function alCambiarSesion(callback) {
   return onAuthStateChanged(auth, callback);
 }
 
-export function ingresar(correo, clave) {
-  return signInWithEmailAndPassword(auth, correo, clave);
+export function ingresar() {
+  return signInWithPopup(auth, new GoogleAuthProvider());
 }
 
 export function salir() {
   return signOut(auth);
-}
-
-export async function esAnalista(uid) {
-  try {
-    return (await getDoc(doc(db, 'analistas', uid))).exists();
-  } catch {
-    return false;
-  }
 }
 
 export async function listarEnvios() {

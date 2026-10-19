@@ -1,9 +1,9 @@
 // ARCHIVO GENERADO por scripts/generar-reglas.mjs. No editar a mano:
-// cambia firestore.rules.plantilla o public/config/preguntas.json.
+// cambia firestore.rules.plantilla o public/config/*.json.
 rules_version = '2';
 
 // Reglas de seguridad: validación del lado del servidor (NFR-008, DES-003).
-// Las marcas {{...}} se reemplazan desde public/config/preguntas.json
+// Las marcas {{...}} se reemplazan desde public/config/preguntas.json y analista.json
 // con `npm run reglas` (también corre antes de cada deploy).
 
 service cloud.firestore {
@@ -13,9 +13,11 @@ service cloud.firestore {
       return /databases/$(database)/documents/$(coleccion)/$(id);
     }
 
-    // FR-013, D-02: solo cuentas de Firebase Auth con un documento en /analistas/{uid}.
+    // FR-013, D-02: solo la cuenta de Google del analista (public/config/analista.json).
     function esAnalista() {
-      return request.auth != null && exists(doc('analistas', request.auth.uid));
+      return request.auth != null
+        && request.auth.token.email_verified == true
+        && request.auth.token.email == 'jeanpierrf31@gmail.com';
     }
 
     function idValido(id) {
@@ -121,8 +123,5 @@ service cloud.firestore {
         && request.time > resource.data.ultimo + duration.value(60, 's');
     }
 
-    match /analistas/{uid} {
-      allow get: if request.auth != null && request.auth.uid == uid;
-    }
   }
 }

@@ -65,6 +65,8 @@ function ordenarPreguntas(secciones, lista) {
 function pintarTextos() {
   document.title = T.titulo;
   $('titulo').textContent = T.titulo;
+  $('marca').textContent = T.marca;
+  $('pie').textContent = T.pie;
   $('instrucciones').textContent = T.instrucciones;
   $('anterior').textContent = T.botones.anterior;
   $('reintentar').textContent = T.botones.reintentar;
@@ -78,13 +80,13 @@ function pintarTextos() {
 function pintarPasos() {
   const contenedor = $('pasos');
   pasos.forEach((paso, i) => {
-    const fieldset = el('fieldset', { clase: 'paso', id: `paso-${i}`, hidden: true },
-      el('legend', {}, el('h2', { clase: 'paso-titulo', tabindex: '-1', texto: paso.titulo })));
+    const fieldset = el('fieldset', { clase: 'paso min-w-0 rounded-2xl bg-superficie p-5 shadow-md ring-1 ring-borde sm:p-8', id: `paso-${i}`, hidden: true },
+      el('legend', { clase: 'float-left mb-5 w-full' }, el('h2', { clase: 'paso-titulo border-b-2 border-primario-suave pb-3 text-xl font-bold focus:outline-none', tabindex: '-1', texto: paso.titulo })));
     if (i === 0) {
       fieldset.append(
         campoTexto({ id: 'nombre', etiqueta: T.contacto.nombre, tipo: 'text', autocomplete: 'name', max: MAX_NOMBRE }),
         campoTexto({ id: 'correo', etiqueta: T.contacto.correo, tipo: 'email', autocomplete: 'email', max: MAX_CORREO, ayuda: T.contacto.correoAyuda, inputmode: 'email' }),
-        el('p', { clase: 'privacidad', texto: T.contacto.privacidad }),
+        el('p', { clase: 'mt-2 text-sm text-suave', texto: T.contacto.privacidad }),
       );
     } else {
       for (const id of paso.campos) fieldset.append(campoPregunta(preguntas.find((p) => p.id === id)));
@@ -94,36 +96,41 @@ function pintarPasos() {
 }
 
 function etiquetaCon(texto, obligatoria, para, marca = obligatoria ? T.obligatorioMarca : T.opcionalMarca) {
-  return el('label', { for: para, clase: 'etiqueta' },
+  return el('label', { for: para, clase: 'mb-1 block font-semibold' },
     texto, ' ',
-    el('span', { clase: obligatoria ? 'marca marca-obligatoria' : 'marca', texto: marca }));
+    el('span', {
+      clase: obligatoria
+        ? 'ml-1 inline-block rounded-full bg-primario-suave px-2 py-0.5 align-middle text-xs font-medium text-primario'
+        : 'ml-1 align-middle text-xs font-normal text-suave',
+      texto: marca,
+    }));
 }
 
 function campoTexto({ id, etiqueta, tipo, autocomplete, max, ayuda, inputmode }) {
   const describe = [ayuda ? `ayuda-${id}` : null, `error-${id}`].filter(Boolean).join(' ');
-  return el('div', { clase: 'campo', id: `campo-${id}` },
+  return el('div', { clase: 'mb-6 last:mb-0', id: `campo-${id}` },
     etiquetaCon(etiqueta, true, id, T.contacto.obligatorioMarca),
-    ayuda ? el('p', { clase: 'ayuda', id: `ayuda-${id}`, texto: ayuda }) : null,
+    ayuda ? el('p', { clase: 'mb-2 text-sm text-suave', id: `ayuda-${id}`, texto: ayuda }) : null,
     el('input', {
-      id, name: id, type: tipo, autocomplete, inputmode, maxlength: String(max),
+      clase: 'campo-texto', id, name: id, type: tipo, autocomplete, inputmode, maxlength: String(max),
       required: true, 'aria-required': 'true', 'aria-describedby': describe,
       autocapitalize: tipo === 'email' ? 'off' : 'words', spellcheck: tipo === 'email' ? 'false' : null,
     }),
-    el('p', { clase: 'error', id: `error-${id}`, hidden: true }),
+    el('p', { clase: 'mt-1 text-sm font-semibold text-error', id: `error-${id}`, hidden: true }),
   );
 }
 
 function campoPregunta(p) {
   const ayuda = [p.help, p.example].filter(Boolean).join(' ');
   const describe = [ayuda ? `ayuda-${p.id}` : null, `error-${p.id}`].filter(Boolean).join(' ');
-  return el('div', { clase: 'campo', id: `campo-${p.id}` },
+  return el('div', { clase: 'mb-6 last:mb-0', id: `campo-${p.id}` },
     etiquetaCon(p.label, p.required, p.id),
-    ayuda ? el('p', { clase: 'ayuda', id: `ayuda-${p.id}`, texto: ayuda }) : null,
+    ayuda ? el('p', { clase: 'mb-2 text-sm text-suave', id: `ayuda-${p.id}`, texto: ayuda }) : null,
     el('textarea', {
-      id: p.id, name: p.id, rows: '3', maxlength: String(MAX_RESPUESTA),
+      clase: 'campo-texto', id: p.id, name: p.id, rows: '3', maxlength: String(MAX_RESPUESTA),
       required: p.required, 'aria-required': p.required ? 'true' : 'false', 'aria-describedby': describe,
     }),
-    el('p', { clase: 'error', id: `error-${p.id}`, hidden: true }),
+    el('p', { clase: 'mt-1 text-sm font-semibold text-error', id: `error-${p.id}`, hidden: true }),
   );
 }
 
@@ -234,9 +241,9 @@ function mostrarErrores(errores) {
   }
   const resumen = $('resumen-errores');
   resumen.replaceChildren(
-    el('p', { texto: formato(T.errores.resumen, { n: errores.length }) }),
-    el('ul', {}, ...errores.map(({ campo }) => {
-      const a = el('a', { href: `#${campo}`, texto: etiquetaCampo(campo) });
+    el('p', { clase: 'mb-2 font-semibold', texto: formato(T.errores.resumen, { n: errores.length }) }),
+    el('ul', { clase: 'list-disc space-y-1 pl-5' }, ...errores.map(({ campo }) => {
+      const a = el('a', { href: `#${campo}`, clase: 'underline', texto: etiquetaCampo(campo) });
       a.addEventListener('click', (e) => { e.preventDefault(); $(campo).focus(); });
       return el('li', {}, a);
     })),
